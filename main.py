@@ -1,5 +1,6 @@
 import asyncio
 import uvicorn
+import os
 from fastapi import FastAPI
 from telegram.ext import Application, CommandHandler, CallbackQueryHandler
 from bot.handlers import (
@@ -16,7 +17,7 @@ app.include_router(webhook_router)
 
 @app.get("/")
 def health_check():
-    return {"status": "Bot is Online and Trading!"}
+    return {"status": "Bot is Online!"}
 
 async def main():
     if not TELEGRAM_BOT_TOKEN:
@@ -38,24 +39,22 @@ async def main():
     ptb_app.add_handler(CommandHandler("copytrade", copytrade_cmd))
     ptb_app.add_handler(CallbackQueryHandler(button_callback))
 
-    # 3. Background Jobs (Alerts & Live Stream checking every 15s)
+    # 3. Background Jobs
     ptb_app.job_queue.run_repeating(check_alerts_job, interval=15)
 
-    # 4. Inject Bot into FastAPI State for Webhooks
+    # 4. Inject Bot into FastAPI State
     app.state.bot = ptb_app.bot
 
-    # 5. Start Telegram Polling
+    # --- ফিক্সড পার্ট: এখানে polling সরিয়ে ফেলে শুধু bot চালু করা হয়েছে ---
     await ptb_app.initialize()
     await ptb_app.start()
-    await ptb_app.updater.start_polling()
 
-    # 6. Start FastAPI Server
+    # 5. Start FastAPI Server
     config = uvicorn.Config(app, host="0.0.0.0", port=PORT, log_level="info")
     server = uvicorn.Server(config)
     await server.serve()
 
-    # 7. Shutdown Gracefully
-    await ptb_app.updater.stop()
+    # 6. Shutdown Gracefully
     await ptb_app.stop()
     await ptb_app.shutdown()
 
