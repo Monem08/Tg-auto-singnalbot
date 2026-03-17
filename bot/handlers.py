@@ -1,4 +1,4 @@
-yimport asyncio
+import asyncio
 from telegram import Update
 from telegram.ext import ContextTypes
 from bot.keyboards import main_menu_keyboard
