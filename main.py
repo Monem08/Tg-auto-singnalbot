@@ -1,11 +1,11 @@
 import asyncio
 import uvicorn
 from fastapi import FastAPI
-from telegram.ext import Application, CommandHandler
+from telegram.ext import Application, CommandHandler, CallbackQueryHandler
 from bot.handlers import (
     start_cmd, price_cmd, alert_cmd, stopalert_cmd,
     analysis_cmd, enable_signals_cmd, disable_signals_cmd,
-    live_cmd, stoplive_cmd, copytrade_cmd
+    live_cmd, stoplive_cmd, copytrade_cmd, button_callback
 )
 from services.alert_engine import check_alerts_job
 from api.webhook import router as webhook_router
@@ -36,6 +36,7 @@ async def main():
     ptb_app.add_handler(CommandHandler("live", live_cmd))
     ptb_app.add_handler(CommandHandler("stoplive", stoplive_cmd))
     ptb_app.add_handler(CommandHandler("copytrade", copytrade_cmd))
+    ptb_app.add_handler(CallbackQueryHandler(button_callback))
 
     # 3. Background Jobs (Alerts & Live Stream checking every 15s)
     ptb_app.job_queue.run_repeating(check_alerts_job, interval=15)
