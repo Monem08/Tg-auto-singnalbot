@@ -1,4 +1,4 @@
-import asyncio
+yimport asyncio
 from telegram import Update
 from telegram.ext import ContextTypes
 from bot.keyboards import main_menu_keyboard
@@ -118,3 +118,29 @@ async def copytrade_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE):
     else:
         copy_trade_users.discard(user_id)
         await update.message.reply_text("🛑 Copy Trading DISABLED.")
+
+
+
+
+async def button_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    query = update.callback_query
+    await query.answer() # এটি বাটনের লোডিং এনিমেশন বন্ধ করবে
+    
+    if query.data == "btn_prices":
+        prices = await fetch_prices()
+        if not prices:
+            await query.message.reply_text("❌ Price feed offline. Check API Key.")
+            return
+        res = "📊 **LIVE MARKET PRICES**\n\n"
+        for sym, price in prices.items():
+            res += f"🔸 **{sym}**: `{price}`\n"
+        await query.message.reply_text(res, parse_mode="Markdown")
+        
+    elif query.data == "btn_analysis":
+        await query.message.reply_text("🤖 **AI Analysis:**\nTo get deep analysis, please type the command manually like this:\n`/analysis XAUUSD`", parse_mode="Markdown")
+        
+    elif query.data == "btn_alerts":
+        await query.message.reply_text("🚨 **Alert System:**\nTo set an alert, type:\n`/alert XAUUSD 2050`\n\nTo clear alerts, type:\n`/stopalert`", parse_mode="Markdown")
+        
+    elif query.data == "btn_signals":
+        await query.message.reply_text("📊 **Signals:**\nBot is ready to receive signals from TradingView Webhook!", parse_mode="Markdown")
