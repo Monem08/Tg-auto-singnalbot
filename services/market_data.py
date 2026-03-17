@@ -1,8 +1,6 @@
-import httpx
-from utils.config import TWELVEDATA_API_KEY, SYMBOLS_MAP, logger
-
 async def fetch_prices() -> dict:
     if not TWELVEDATA_API_KEY:
+        logger.error("API KEY IS MISSING!") # এটি লগে দেখুন
         return {}
     
     symbols = ",".join(SYMBOLS_MAP.values())
@@ -13,17 +11,16 @@ async def fetch_prices() -> dict:
             resp = await client.get(url, timeout=10.0)
             data = resp.json()
             
+            # Debugging: কি ডাটা আসছে তা লগে প্রিন্ট করুন
+            logger.info(f"TwelveData Response: {data}") 
+            
+            if "code" in data: # TwelveData এরর কোড দিলে এটি ধরবে
+                 logger.error(f"TwelveData Error: {data.get('message')}")
+                 return {}
+
             prices = {}
-            for my_sym, td_sym in SYMBOLS_MAP.items():
-                if td_sym in data and "price" in data[td_sym]:
-                    prices[my_sym] = float(data[td_sym]["price"])
+            # ... আগের কোড ...
             return prices
     except Exception as e:
         logger.error(f"Price fetch error: {e}")
         return {}
-
-async def check_smart_features(symbol: str, current_price: float) -> str:
-    """Mock smart feature detection (Liquidity Sweep, Breakout)."""
-    # In a real scenario, fetch 24h High/Low and compare.
-    # We return a simulated response for demonstration of the architecture.
-    return "🔍 *Smart Scan*: Minor Liquidity Sweep detected on 15m timeframe. Volume spiking."
